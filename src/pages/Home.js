@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,useCallback } from 'react';
 import ActorGrid from '../components/actor/ActorGrid';
 import CustomRadio from '../components/CustomRadio';
 import MainPageLayout from '../components/MainPageLayout';
@@ -7,6 +7,19 @@ import { apiGet } from '../misc/config';
 import { useLastQuery } from '../misc/custom-hooks';
 import { RadioInputsWrapper, SearchButtonWrapper, SearchInput } from './Home.styled';
 
+const renderResults = (results) => {
+    if (results && results.length === 0) {
+        return <div> No Results </div>;
+    }
+    if (results && results.length > 0) {
+        return results[0].show ?
+            <ShowGrid data={results} />
+            :
+            <ActorGrid data={results} />
+
+    }
+    return null;
+};
 const Home = () => {
 
     const [input, setInput] = useLastQuery();
@@ -16,36 +29,27 @@ const Home = () => {
     const onSearch = () => {
 
         apiGet(`/search/${searchOption}?q=${input}`)
-           
+
             .then(res => {
                 setResult(res);
             });
     };
-    const onInputChange = (event) => {
+
+    const onInputChange = useCallback( (event) => {
         setInput(event.target.value);
-    };
+    },[setInput]);
+
     const onKeyDown = (event) => {
         if (event.keyCode === 13) {
             onSearch();
         }
     };
-    const renderResults = () => {
-        if (results && results.length === 0) {
-            return <div> No Results </div>;
-        }
-        if (results && results.length > 0) {
-            return results[0].show ?
-                <ShowGrid data={results} />
-                :
-                <ActorGrid data={results} />
 
-        }
-        return null;
-    };
+    
 
-    const onRadioChange = (event) => {
+    const onRadioChange = useCallback((event) => {
         setSearchOption(event.target.value);
-    }
+    }, []);
     return (
         <MainPageLayout>
             <SearchInput type="text" value={input} onChange={onInputChange} onKeyDown={onKeyDown} placeholder='Search for something' />
@@ -67,7 +71,7 @@ const Home = () => {
             <SearchButtonWrapper>
             <button type="button" onClick={onSearch}>Search </button>
             {
-                renderResults()
+                    renderResults(results)
                 }
             </SearchButtonWrapper>
         </MainPageLayout>
